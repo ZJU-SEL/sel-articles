@@ -1,5 +1,15 @@
 #About the repo
 
+## Introduction
+
+The directory is for managing documents about kubernetes. 
+
+kubernetes Repo: 
+
+https://github.com/kubernetes/kubernetes
+
+
+
 ## Contact
 
 Welecome to visit our website and comment:

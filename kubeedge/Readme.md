@@ -1,5 +1,15 @@
 #About the repo
 
+## Introduce
+
+The directory is for managing documents about kubeedge. 
+
+KubeEdge Repo: 
+
+https://github.com/kubeedge/kubeedge
+
+
+
 ## Contact
 
 Welecome to visit our website and comment:
