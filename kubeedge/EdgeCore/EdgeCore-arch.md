@@ -1,8 +1,8 @@
 # EdgeCore
 
-本文在commit `a9b0862bed7fc2f9350a850496e60640fc43c15c`之后对KubeEdge进行源码分析，分析KubeEdge的edgecore的整体框架，对细节不做过多展示。
+本文在commit `a9b0862bed7fc2f9350a850496e60640fc43c15c`(2020.06.20)之后对KubeEdge进行源码分析，分析KubeEdge的edgecore的整体框架，对细节不做过多展示。
 
-[KubeEdge releases][ https://github.com/kubeedge/kubeedge/releases ]
+[KubeEdge releases](https://github.com/kubeedge/kubeedge/releases)
 
 整个KubeEdge的架构图如下，先感受一下EdgeCore的目标定位。
 
@@ -37,7 +37,7 @@ EdgeCore的各个模块之间的通信通过beehive微服务框架（底层实�
 
 ![edgehub](images/edgehub.png)
 
-EdgeHub中有两类client，分别是httpsclient以及websocket/quic client，前者用于与EdgeCore与CloudCore通信所需证书的申请，后者负责与CloudCore的日常通信（资源下发、状态上传等）
+EdgeHub中有两类client，分别是httpclient以及websocket/quic client，前者用于与EdgeCore与CloudCore通信所需证书的申请，后者负责与CloudCore的日常通信（资源下发、状态上传等）
 
 当EdgeHub启动时，其先从CloudCore申请证书（若正确配置本地证书，则直接使用本地证书）
 
@@ -52,11 +52,21 @@ EdgeHub中有两类client，分别是httpsclient以及websocket/quic client，�
 处理的消息类型：
 
 - Insert①
+
 - Update①②
+
 - Delete①
-- Query②（configmap/secret/endpoints/PV/PVC/volumeattachment/node，其他资源类型直接到sqlite中查询）
+
+- Query
+
+  根据云边连接状态以及资源类型的不同，查询的具体方式如下图所示：
+
+  ![metamanager-query](images/metamanager-query.png)
+
 - Response
+
 - NodeConnection（edgehub->其他modules）
+
 - MetaSync（podstatus边到云的同步）
 
 处理的资源类型：
