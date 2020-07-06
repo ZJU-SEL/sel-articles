@@ -29,7 +29,7 @@ Kubernetes Pod 中的其他容器都是Pod所属pause容器的网络，创建过
 - cni 插件给pause 容器配置网络
 - pod 中其他的容器都使用 pause 容器的网络
 
-#### 最后，我们最终需要知道calico这个cni插件在启动过程中，到底需要经历哪些步骤。
+#### 重要的是，我们最终需要知道calico这个cni插件在启动过程中，到底需要经历哪些步骤。
 
 ## 2. caclico-node的创建过程
 我们都知道，一个pod中的所有容器共享使用该pause容器的网络栈，pause容器从网络栈的ip段分配ip给pod，并且让pod下的容器ip和pod ip端口进行对接。
@@ -38,7 +38,7 @@ Kubernetes Pod 中的其他容器都是Pod所属pause容器的网络，创建过
 节点在未部署网络插件的情况下会处于notReady的状态。
 - 当我们通过calico.yaml部署的时候，首先在节点上会启动calico的pause容器，该pause容器通过calico的配置文件注入cni配置信息；
 
-
+![cni配置](.\images\cni配置.png)
 
 - 然后，对于calico-node的启动，首先会启动init容器，该容器中包括：upgrade-ipam，install-cni，flexvol-driver这三个容器：
     - 其中upgrade-ipam主要负责更新节点ipam，通过获取节点上ipam的信息，来进行更新；
@@ -57,7 +57,20 @@ Kubernetes Pod 中的其他容器都是Pod所属pause容器的网络，创建过
             - 通过/node/bird/bird.go的源码分析可以看到其通过区分bgp网络类型来和bgp peer进行socket通信；
         - confd主要用于监听bgp的信息变化，通过etcd或者kubernetes api上的状态信息，不断sync（watchProcessor实例化进程）监听felix上的路由更新信息，一旦发现更新了，则启动reload更新BIRD配置；
     - calico-kube-controller主要负责对节点和calico的数据管理，本质功能和k8s的controller性质一样；
-
+        
+        - quay.io/calico/kube-controllers容器包含以下控制器：
+          
+          - policy controller：监视网络策略和编程Calico策略，它会把Kubernetes的network policies同步到Calico datastore中，该控制器需要有访问Kubernetes API的只读权限，以监听NetworkPolicy事件。 用户在k8s集群中设置了Pod的Network Policy之后，calico-kube-controllers就会自动通知各个Node上的calico-node服务，在宿主机上设置相应的iptables规则，完成Pod间网络访问策略的设置。
+          - namespace controller：监视命名空间和编程Calico配置文件，它会把Kubernetes的namespace label变化同步到Calico datastore中，该控制器需要有访问Kubernetes API的只读权限，以监听Namespace事件。
+          - serviceaccount controller：监视服务帐户和编程Calico配置文件，它会把Kubernetes的service account变化同步到Calico datastore中，该控制器需要有访问Kubernetes API的只读权限，以监听ServiceAccount事件。
+          - workloadendpoint controller：监视pod标签的更改并更新Calico工作负载中的endpoints配置，它会把Kubernetes的pod label变化同步到Calico datastore中，该控制器需要有访问Kubernetes API的只读权限，以监听Pod事件。
+          - node controller：监视删除Kubernetes nodes节点的操作并从Calico中也删除相应的数据，该控制器需要有访问Kubernetes API的只读权限，以监听Node事件。
+        - 注：
+          - 除node controller外，其它功能的控制器均是默认启用的。但是如果你直接使用Calico提供的manifest部署 calico-kube-controllers容器，则仍然是通过配置ENABLED_CONTROLLERS选项打开了node controller控制器。启用node controller控制器，还需要配置第二个地方，就是在calico-node daemon set的manifest文件中需要添加一个环境变量CALICO_K8S_NODE_REF，取值为spec.nodeName 。
+          - 以上所有的控制器都是仅在使用etcd作为Calico数据存储区时才有效。
+          - 该容器只能存在一个容器实例。
+          - 该容器必须在宿主机网络的命名空间中运行（hostNetwork: true），以使其不受容器网络访问控制策略的阻止。
+        
 
 当calico-kube-controller和calico-node这两个容器成功部署后，节点calico才算成功部署。
 
@@ -93,7 +106,7 @@ AS内部的BGP speaker通过BGP协议交换路由信息，最终每一个BGP spe
 每个BGP router在收到了peer传来的路由信息，会存储在自己的数据库，前面说过，路由信息包含很多其他的信息，BGP router会根据自己本地的policy结合路由信息中的内容判断，如果路由信息符合本地policy，BGP router会修改自己的主路由表。本地的policy可以有很多，举个例子，如果BGP router收到两条路由信息，目的网络一样，但是路径不一样，一个是AS1->AS3->AS5，另一个是AS1->AS2，如果没有其他的特殊policy，BGP router会选用AS1->AS2这条路由信息。policy还有很多其他的，可以实现复杂的控制。
 
 #### IPPool
-一个IP Pool Resource表示calico指定设置endpoint ip地址网段。默认是192.168.0.0/16。
+一个IP Pool Resource表示calico指定设置endpoint ip地址的网段。默认是192.168.0.0/16，在该ippool下创建的pod ip将会从这个地址段分配。
 
 
 ### 3.2 多套cni实现
