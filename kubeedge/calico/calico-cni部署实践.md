@@ -21,7 +21,7 @@ CNI插件是可执行文件，会被kubelet调用。启动kubelet –network-plu
 
 #### 其次，我们要知道一个pod启动过程中需要经历哪些步骤。
 
-Kubernetes Pod 中的其他容器都是Pod所属pause容器的网络，创建过程为：
+Kubernetes Pod 中的其他容器都使用Pod所属pause容器的网络，创建过程为：
 
 - kubelet 先创建pause容器生成network namespace
 - 调用网络CNI driver
@@ -56,8 +56,8 @@ Kubernetes Pod 中的其他容器都是Pod所属pause容器的网络，创建过
             - bird通过读取felix在数据平面内分发的路由信息执行路由信息分发。
             - 通过/node/bird/bird.go的源码分析可以看到其通过区分bgp网络类型来和bgp peer进行socket通信；
         - confd主要用于监听bgp的信息变化，通过etcd或者kubernetes api上的状态信息，不断sync（watchProcessor实例化进程）监听felix上的路由更新信息，一旦发现更新了，则启动reload更新BIRD配置；
-    - calico-kube-controller主要负责对节点和calico的数据管理，本质功能和k8s的controller性质一样；
-        
+    - calico-kube-controller主要负责对节点和calico的数据管理；
+      
         - quay.io/calico/kube-controllers容器包含以下控制器：
           
           - policy controller：监视网络策略和编程Calico策略，它会把Kubernetes的network policies同步到Calico datastore中，该控制器需要有访问Kubernetes API的只读权限，以监听NetworkPolicy事件。 用户在k8s集群中设置了Pod的Network Policy之后，calico-kube-controllers就会自动通知各个Node上的calico-node服务，在宿主机上设置相应的iptables规则，完成Pod间网络访问策略的设置。
@@ -78,18 +78,17 @@ Kubernetes Pod 中的其他容器都是Pod所属pause容器的网络，创建过
 
 ## 3. calico部署多套cni
 
-### 3.1 calico-BGP介绍
-BGP是一种路径矢量协议（Path vector protocol）的实现。因此，它的工作原理也是基于路径矢量（区别于RIF和OSPF）。
-
-#### BGP router(存储路由信息)
-首先说明一下，下面说的BGP route指的是BGP自己维护的路由信息，区分于设备的主路由表。BGP route是BGP协议传输的数据，并存储在BGP router的数据库中。并非所有的BGP route都会写到主路由表。每条BGP route都包含了目的网络，下一跳和完整的路径信息。路径信息是由AS号组成，当BGP router收到了一条 路由信息，如果里面的路径包含了自己的AS号，那它就能判定这是一条自己曾经发出的路由信息，收到的这条路由信息会被丢弃。
-
-该定义并未在官网给出，详细可通过[BGP漫谈](https://zhuanlan.zhihu.com/p/25433049)找到作者给出的定义。
+### 3.1 Calico-BGP介绍
+BGP是一种路径矢量协议（Path vector protocol）的实现。因此，它的工作原理也是基于路径矢量（区别于RIF和OSPF）。关于BGP的具体定义，可以看后面一篇关于BGP的介绍。
 
 #### AS(自治系统)
 AS是一个自治的网络，拥有独立的交换机、路由器等，可以独立运转。
 
-#### BGP Speaker
+![AS自治系统](.\images\AS.png)
+
+比如说AS1下的网络状况是LAN1和LAN2通过交换机互联，而AS2下的网络状况是LAN3和LAN4通过路由器进行互联。前者在二层网络互通，后者三层网络互通。
+
+#### BGP Speaker(BIRD)
 AS内部有多个BGP speaker，而BGP的通信协议分为ibgp、ebgp，ebgp与其它AS中的ebgp（跨网段）建立BGP连接。
 
 AS内部的BGP speaker通过BGP协议交换路由信息，最终每一个BGP speaker拥有整个AS的路由信息。BGP speaker一般是网络中的物理路由器，可以形象的理解为:
@@ -97,16 +96,32 @@ AS内部的BGP speaker通过BGP协议交换路由信息，最终每一个BGP spe
 - calico将node改造成了一个软路由器（通过软路由软件bird)
 - node上的运行的虚拟机或者容器通过node与外部沟通
 
-#### BGP Peer
-这里把每个BGP服务的实体叫做BGP router，而与BGP router连接的对端叫BGP Peer。BGP Peer又称为BGP对等体，Calico BGP Peer resource提供了几种方式来表示某些Calico节点应与其他Calico节点或与IP标识的其他BGP speakers建立对等。 
-除了使用默认的全网状网络之外，还可以选择使用这些配置方式建立需要的BGP网络。 BGPPeer可以指定所有Calico节点都应该具有某些对等体，或者只与一个特定的Calico节点建立对等，再或者与指定标签选择器匹配的一组Calico节点都建立对等。
+![单AS下全连接流程图](.\images\单AS下全连接流程图.png)
+这张图上可以看到三个节点的BGP Speaker互相连接，交换路由信息。
+
+#### BGP Peer 和 BGP Router Reflector
+BGPPeer可以指定所有Calico节点都应该具有某些对等体，或者只与一个特定的Calico节点建立对等，再或者与指定标签选择器匹配的一组Calico节点都建立对等。
+
+RR模式，就是在网络中指定一个或多个BGP Speaker作为Router Reflection，RR与所有的BGP Speaker建立BGP连接。
+
+每个BGP Speaker只需要与RR交换路由信息，就可以得到全网路由信息。
+
+RR则必须与所有的BGP Speaker建立BGP连接，以保证能够得到全网路由信息。
+
+每个BGP router reflector在收到了peer传来的路由信息，会存储在自己的数据库，前面说过，路由信息包含很多其他的信息，BGP router reflector会根据自己本地的policy结合路由信息中的内容判断，如果路由信息符合本地policy，BGP router reflector会修改自己的主路由表。
+
+本地的policy可以有很多，举个例子，如果BGP router reflector收到两条路由信息，目的网络一样，但是路径不一样，一个是AS1->AS3->AS5，另一个是AS1->AS2，如果没有其他的特殊policy，BGP router reflector会选用AS1->AS2这条路由信息。policy还有很多其他的，可以实现复杂的控制。
+
+下图简单模拟了BGP RR通过calico ip-ip模式跨网段交互的过程：
+
+![BGP Peer和RR跨网段简易图](.\images\BGP Peer和RR跨网段简易图.png)
 
 
-
-每个BGP router在收到了peer传来的路由信息，会存储在自己的数据库，前面说过，路由信息包含很多其他的信息，BGP router会根据自己本地的policy结合路由信息中的内容判断，如果路由信息符合本地policy，BGP router会修改自己的主路由表。本地的policy可以有很多，举个例子，如果BGP router收到两条路由信息，目的网络一样，但是路径不一样，一个是AS1->AS3->AS5，另一个是AS1->AS2，如果没有其他的特殊policy，BGP router会选用AS1->AS2这条路由信息。policy还有很多其他的，可以实现复杂的控制。
 
 #### IPPool
 一个IP Pool Resource表示calico指定设置endpoint ip地址的网段。默认是192.168.0.0/16，在该ippool下创建的pod ip将会从这个地址段分配。
+
+
 
 
 ### 3.2 多套cni实现
@@ -204,7 +219,6 @@ items:
 对于ippool1，选择calico=1这个标签下的所有节点，设置的ipipMode=Never意味着启用bgp模式。对于ippool2，选择calico=2这个标签下的所有节点，设置ipipMode=Always表示启用ipip模式。
 
 对等体peer1选择calico=1的所有节点，设置并设置为BGP peer，同理peer2。这样peer1中的每个节点下的bird下都获取到了calico=1下节点的路由信息，通过felix下的iptables进行流量通信。因为peer2与peer1并不对等，所以peer1下的felix无法获取到peer2下的节点路由信息，故对于peer1下的pod无法通过ipatbles访问peer2下的pod。
-
 
 
 
