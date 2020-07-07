@@ -7,7 +7,7 @@ CNI是Container Network Interface的是一个标准的，通用的接口，用�
 
 其基本思想为：Container Runtime在创建pod容器时，先创建好network namespace，然后调用CNI插件，根据这个cni配置为这个netns执行插件ADD方法，配置网络，其后再启动容器内的进程。
 
-![cni流程](.\images\cni流程.png)
+![cni流程](./images/cni流程.png)
 
 CNI插件包括两部分：
 
@@ -38,7 +38,7 @@ Kubernetes Pod 中的其他容器都使用Pod所属pause容器的网络，创建
 节点在未部署网络插件的情况下会处于notReady的状态。
 - 当我们通过calico.yaml部署的时候，首先在节点上会启动calico的pause容器，该pause容器通过calico的配置文件注入cni配置信息；
 
-![cni配置](.\images\cni配置.png)
+![cni配置](./images/cni配置.png)
 
 - 然后，对于calico-node的启动，首先会启动init容器，该容器中包括：upgrade-ipam，install-cni，flexvol-driver这三个容器：
     - 其中upgrade-ipam主要负责更新节点ipam，通过获取节点上ipam的信息，来进行更新；
@@ -84,7 +84,7 @@ BGP是一种路径矢量协议（Path vector protocol）的实现。因此，它
 #### AS(自治系统)
 AS是一个自治的网络，拥有独立的交换机、路由器等，可以独立运转。
 
-![AS自治系统](.\images\AS.png)
+![AS自治系统](./images/AS.png)
 
 比如说AS1下的网络状况是LAN1和LAN2通过交换机互联，而AS2下的网络状况是LAN3和LAN4通过路由器进行互联。前者在二层网络互通，后者三层网络互通。
 
@@ -96,7 +96,7 @@ AS内部的BGP speaker通过BGP协议交换路由信息，最终每一个BGP spe
 - calico将node改造成了一个软路由器（通过软路由软件bird)
 - node上的运行的虚拟机或者容器通过node与外部沟通
 
-![单AS下全连接流程图](.\images\单AS下全连接流程图.png)
+![单AS下全连接流程图](./images/单AS下全连接流程图.png)
 这张图上可以看到三个节点的BGP Speaker互相连接，交换路由信息。
 
 #### BGP Peer 和 BGP Router Reflector
@@ -114,7 +114,7 @@ RR则必须与所有的BGP Speaker建立BGP连接，以保证能够得到全网�
 
 下图简单模拟了BGP RR通过calico ip-ip模式跨网段交互的过程：
 
-![BGP Peer和RR跨网段简易图](.\images\BGP Peer和RR跨网段简易图.png)
+![BGP Peer和RR跨网段简易图](./images/BGP Peer和RR跨网段简易图.png)
 
 
 
