@@ -2,7 +2,7 @@
 
 ## 引文
 
-本文基于KubeEdge官方文档，加上作者的亲身实践，给出以下KubeEdge1.3.0版本下Cloudcore模块中Cloudhub模组的源码分析。
+本文基于KubeEdge官方文档，加上作者的亲身实践，给出以下KubeEdge1.3.0版本下Cloudcore模块中cloudhub模组的源码分析。
 
 ## 总览
 
