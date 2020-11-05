@@ -32,7 +32,7 @@ GitHub 是用 Git 做版本控制的代码托管平台，我们把代码托管�
 
 图解如下：
 
-![all](pic/all1.png)
+![all](images/all1.png)
 
 
 
@@ -40,15 +40,15 @@ GitHub 是用 Git 做版本控制的代码托管平台，我们把代码托管�
 
 - **在 GitHub 中 fork **
 
-![fork](pic/fork.png)
+![fork](images/fork.png)
 
 
 
-![forking](pic/forking.png)
+![forking](images/forking.png)
 
 在自己 Repositories 中可以看到 forked 仓库：
 
-![forked](pic/forked.png)
+![forked](images/forked.png)
 
 
 
@@ -62,7 +62,7 @@ GitHub 是用 Git 做版本控制的代码托管平台，我们把代码托管�
 git clone https://github.com/GsssC/kubernetes.git
 ```
 
-![git_clone](pic/git_clone.png)
+![git_clone](images/git_clone.png)
 
 
 
@@ -83,17 +83,17 @@ git remote    	//不带选项的时候，git remote命令列出所有远程主�
 git remote -v 	//使用-v选项，可以参看远程主机的网址
 ```
 
-![git_bash_here](pic/git_bash_here.png)
+![git_bash_here](images/git_bash_here.png)
 
 
 
-![git_remote](pic/git_remote.png)
+![git_remote](images/git_remote.png)
 
 
 
 使用 `git remote add` 将 k8s/k8s 仓库链接到本地仓库，并起一个别名 upstream：
 
-![git_remote_add](pic/git_remote_add.png)
+![git_remote_add](images/git_remote_add.png)
 
 `clone` 版本库的时候，所使用的远程主机自动被Git命名为`origin`
 
@@ -113,7 +113,7 @@ _**A:** forked 的仓库 GsssC/k8s 是 k8s/k8s 的一份云上拷贝，随着时
 
 重新回顾一下下图：
 
-![all](pic/all1.png)
+![all](images/all1.png)
 
 
 
@@ -127,13 +127,13 @@ _**A:** forked 的仓库 GsssC/k8s 是 k8s/k8s 的一份云上拷贝，随着时
 git fetch upstream master 
 ```
 
-![git_fetch](pic/git_fetch.png)
+![git_fetch](images/git_fetch.png)
 
 
 
 这里带*号两行表示 k8s/k8s 下 master 这个分支，写入了 FETCH_HEAD（一份文件，记录了远端仓库有哪些分支已经被拷贝到了本地，最新commit为多少），并把此拷贝分支在本地取名为 upstream/master 。使用 `git branch -al ` 可以看见：
 
-![git_branch](pic/git_branch.png)
+![git_branch](images/git_branch.png)
 
 
 
@@ -175,7 +175,7 @@ git rebase master upstream/master //本地分支+远程仓库分支
   git checkout -b pr-test 
   ```
 
-  ![git_checkout](pic/git_checkout.png)
+  ![git_checkout](images/git_checkout.png)
 
 
 
@@ -216,11 +216,11 @@ git checkout -b pr-test
 git push -f origin pr-test
  ```
 
-![git_push](pic/git_push.png)
+![git_push](images/git_push.png)
 
 随后可以去 GitHub 网站上检查分支是否成功发布：
 
-![pr-test_on_git](pic/pr-test_on_git.png)
+![pr-test_on_git](images/pr-test_on_git.png)
 
 
 
@@ -246,13 +246,13 @@ git push -f origin pr-test
 
 点击 new pull request :
 
-![new_pull_request](pic/new_pull_request.png)
+![new_pull_request](images/new_pull_request.png)
 
 填写描述并 create ：
 
-![done1](pic/done1.png)
+![done1](images/done1.png)
 
-![done2](pic/done2.png)
+![done2](images/done2.png)
 
 至此，我们完成了一个 pr 的提交：）
 
