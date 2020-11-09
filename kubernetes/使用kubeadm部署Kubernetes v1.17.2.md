@@ -219,23 +219,19 @@ NAME     STATUS   ROLES    AGE     VERSION
 master   Ready    master   5m3s    v1.17.2
 ```
 
-### 获得join命令参数
+
+
+## 5. 工作节点加入集群
+
+在工作节点上运行第1-3步后，根据第4步在Master节点上运行`kubeadm token create --print-join-command` 命令获得join命令参数，并在工作节点上运行join命令即可加入集群：
+### Master节点上获得join命令参数
 
 在Master节点上运行以下命令，返回的join命令及参数在工作节点上运行，使工作节点加入集群。
 
 ```powershell
 $ kubeadm token create --print-join-command
 ```
-
-## 5. 工作节点加入集群
-
-在工作节点上运行第1-3步后，根据第4步在Master节点上运行`kubeadm token create --print-join-command` 命令获得join命令参数，并在工作节点上运行join命令即可加入集群：
-
-```powershell
-# 在master节点下运行该命令获取join参数
-$ kubeadm token create --print-join-command
-```
-
+### 工作节点上运行join命令
 ```powershell
 # 在工作节点上运行
 # 替换为 master 节点上 kubeadm token create --print-join-command 命令的输出
