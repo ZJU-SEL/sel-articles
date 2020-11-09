@@ -232,6 +232,12 @@ $ kubeadm token create --print-join-command
 在工作节点上运行第1-3步后，根据第4步在Master节点上运行`kubeadm token create --print-join-command` 命令获得join命令参数，并在工作节点上运行join命令即可加入集群：
 
 ```powershell
+# 在master节点下运行该命令获取join参数
+$ kubeadm token create --print-join-command
+```
+
+```powershell
+# 在工作节点上运行
 # 替换为 master 节点上 kubeadm token create --print-join-command 命令的输出
 $ kubeadm join 192.168.11.136:6443 --token ivyfuh.31jiaci3rwjkcyx6     --discovery-token-ca-cert-hash sha256:5ee2a16681e694f439a431b69d58fd162efc317bc43b2066dfed6ac035d2168d
 ```
