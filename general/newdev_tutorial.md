@@ -11,6 +11,7 @@
 	1. 《Go语言核心编程》
 	1. 《Concurrency in Go : Tools and Techniques for Developers》
 	1. 《go语言专家编程》,华为云原生团队所著，可以的
+	1. 《Go语言高级编程》，的确高级
 ## 容器技术入门
 1. [《docker--入门到实践》](https://yeasy.gitbook.io/docker_practice/)
 1. [《Kubernetes 指南》](https://github.com/feiskyer/kubernetes-handbook)
