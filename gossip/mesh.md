@@ -2,8 +2,10 @@
 ## 名词解释
   邻居 = 直连
   relay = 转发
-## mesh 的特点
-- 通信直接基于TCP协议,需要自定义编码规则(从tcp字节流中分隔，读取出消息字节切片)，目前的消息格式有
+## 消息流概览
+![meshDataFlow](./images/meshDataFlow.png)
+## mesh 连接与消息格式
+- 通信直接基于TCP协议,需要自定义编码规则(从tcp字节流中分隔，读取出消息字节切片)，目前的编码规则有
   1. Golang官方编码gob,gob可以来序列化struct对象。
   2. lengthPrefixTCPReceiver,自定义消息长度的编码规则，msg = [length] + [body]
   3. encryptedTCPReceiver, 前两者均为明文的消息格式，此格式根据tcp.state.sessionkey 将消息编码(加密)，`res.SessionKey = formSessionKey(&remotePubKeyArr, privKey, params.Password)`
@@ -126,9 +128,10 @@
     c.relayBroadcast(srcName, data)
     return nil
   }
+  ```
   组播的初步逻辑同单播一致，接收本节点消息至上层或转发非本节点消息。
 ### Mesh 绯闻协议逻辑分析
-  ```go
+   ```go
   func (c *gossipChannel) deliver(srcName PeerName, _ []byte, dec *gob.Decoder) error {
     var payload []byte
     if err := dec.Decode(&payload); err != nil {
@@ -146,8 +149,14 @@
   - n_peers,网络拓扑中的节点总数，注意每个channel平面都有着不同的网络拓扑
   - n_neighbouring_peers, 本节点连接总数
   在一个稀疏的网络拓扑图中，返回拓扑中的大部分节点，极端情况下，返回全部节点。邻居节点也有其邻居，对于拓扑中的关键节点(路由表中频繁出现，消息到达其他节点需要频繁经过)，增加其被挑选的概率
-### Gossiper 上层处理demo分析
+
+### mesh 关键结构体分析
+
+### mesh 路由
+
+### Gossiper and Gossip 上层处理demo分析
+
+
+
   
-  - 
-### mesh路由
 
