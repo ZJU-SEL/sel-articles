@@ -1,7 +1,7 @@
 # 新加入SEL实验室学生的入门指南
 本文主要描述新加入SEL实验室学生的技术上手指南，主要涉及golang云原生开发的各方面
 
-## 基础书籍推荐
+## 书籍推荐
 所有书籍除了中文著作，推荐阅读英文原版
 
 1. golang入门  
@@ -12,9 +12,13 @@
 	1. 《Concurrency in Go : Tools and Techniques for Developers》
 	1. 《go语言专家编程》,华为云原生团队所著，可以的
 	1. 《Go语言高级编程》，的确高级
-## 容器技术入门
-1. [《docker--入门到实践》](https://yeasy.gitbook.io/docker_practice/)
-1. [《Kubernetes 指南》](https://github.com/feiskyer/kubernetes-handbook)
+1.  容器技术入门  
+	1. [《docker--入门到实践》](https://yeasy.gitbook.io/docker_practice/)
+	1. [《Kubernetes 指南》](https://github.com/feiskyer/kubernetes-handbook)
+
+1. git入门  
+	1. 《git权威指南》
+
 ## 开发环境推荐
 1. IDE/编辑器  
 	1. neovim，编辑器之神vim再版。学不完的技能、装不完的插件和x格  
