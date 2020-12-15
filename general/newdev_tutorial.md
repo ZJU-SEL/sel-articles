@@ -19,12 +19,13 @@
 1. git入门  
 	1. 《git权威指南》
 
+1. vim/neovim入门
+	1. 《Practical Vim》 Second Edition
+	1. 《Programming in Lua, Fourth Edition》（可选）neovim 0.5开始插件开发和配置转向lua，为更好使用neovim推荐搭配阅读
 ## 开发环境推荐
 1. IDE/编辑器  
-	1. neovim，编辑器之神vim再版。学不完的技能、装不完的插件和x格  
-	neovim 0.5开始插件开发和配置转向lua，推荐搭配阅读《Programming in Lua, Fourth Edition》
+	1. neovim，编辑器之神vim再版。学不完的技能、装不完的插件和x格
 	1. 来自微软的编辑器网红vscode，完成度可以，插件丰富、少量折腾
-	1. goland，完成度达到产品级别（就是产品,注意license），开箱即用
 1. 远程开发辅助工具  
 	1. tmux  
 	推荐配套阅读《tmux 2 : Productive Mouse-Free Development》
