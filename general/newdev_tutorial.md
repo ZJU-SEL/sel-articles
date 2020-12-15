@@ -26,7 +26,8 @@
 1. IDE/编辑器  
 	1. neovim，编辑器之神vim再版。学不完的技能、装不完的插件和x格
 	1. 来自微软的编辑器网红vscode，完成度可以，插件丰富、少量折腾
-1. 远程开发辅助工具  
-	1. tmux  
+	1. goland，完成度达到产品级别（无免费license，注意），开箱即用
+1. 开发辅助工具  
+	1. tmux,本地远程开发都有用  
 	推荐配套阅读《tmux 2 : Productive Mouse-Free Development》
 
