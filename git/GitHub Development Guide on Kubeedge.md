@@ -232,7 +232,7 @@ git push -f origin pr-test
 
 ```shell
 touch newFile
-echo “fuck” > newFile
+echo “hello world!” > newFile
 
 git commit -m “newCommit”
 git push -f origin pr-test
