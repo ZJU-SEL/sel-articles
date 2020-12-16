@@ -2,7 +2,7 @@
 
 
 
-# bashrc
+## bashrc
 
 https://github.com/GsssC/bashrc
 
@@ -10,7 +10,34 @@ https://github.com/GsssC/bashrc
 
 
 
-# Windows
+## （1）使用 git
+
+### windows/Linux/Mac
+
+1. 在原仓库中查看 issues ID
+
+   ![test-pr-1](./images/test-pr-1.png)
+
+2. 在终端中查看仓库关系
+
+   ![test-pr-2](./images/test-pr-2.png)
+
+3. 运行命令并切换分支
+
+   ```bash
+   git fetch upstream pull/ID/head:BRANCHNAME
+   git checkout BRANCHNAME
+   ```
+
+   
+
+   ![test-pr-3](./images/test-pr-3.png)
+
+
+
+## （2）使用 github cli
+
+### Windows
 
 Windows主要使用github desktop做代码开发, 假设有下图pr我们希望在本地观察它的源码!
 
@@ -38,7 +65,7 @@ Windows主要使用github desktop做代码开发, 假设有下图pr我们希望�
 
 
 
-# Linux CentOS
+### Linux CentOS
 
 1. 安装gh
 
@@ -82,7 +109,7 @@ sudo dnf install gh
 
 
 
-# MAC 安装：
+### MAC 
 
 （1）安装 gh
 
