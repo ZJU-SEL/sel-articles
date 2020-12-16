@@ -12,35 +12,33 @@ https://github.com/GsssC/bashrc
 
 # Windows
 
-Windows主要使用github desktop做代码开发, 假设有下图pr我们希望在本地观察它的源码
+Windows主要使用github desktop做代码开发, 假设有下图pr我们希望在本地观察它的源码!
 
-![image-20201216105117410](/Users/goven/Library/Application Support/typora-user-images/image-20201216105117410.png)
+![test-windows-1](./images/test-windows-1.png)
+
+
 
 1. 点开右上角Open with, 点开Open in Desktop
 
-![image-20201216105137651](/Users/goven/Library/Application Support/typora-user-images/image-20201216105137651.png)
+   ![test-windows-2](./images/test-windows-2.png)
 
 2. GitHub Desktop会自动启动, 加入原工作区有未保存的变更, 会通知进行stash
 
-![image-20201216105204831](/Users/goven/Library/Application Support/typora-user-images/image-20201216105204831.png)
+![test-windows-3](./images/test-windows-3.png)
 
 3. 选择将工作区stash后, switch branch, 可以看见分支已经切换 
 
-![image-20201216105220643](/Users/goven/Library/Application Support/typora-user-images/image-20201216105220643.png)
+![test-windows-4](./images/test-windows-4.png)
 
 4. 使用git stash list 可以看见刚才stash的内容
 
-![image-20201216105236320](/Users/goven/Library/Application Support/typora-user-images/image-20201216105236320.png)
-
-
+![test-windows-5](./images/test-windows-5.png)
 
 
 
 
 
 # Linux CentOS
-
- 
 
 1. 安装gh
 
@@ -54,35 +52,33 @@ sudo dnf install gh
 
 2. gh的使用需要github token, 进入settings/developer settings生成github token
 
-   ![image-20201216102216808](/Users/goven/Library/Application Support/typora-user-images/image-20201216102216808.png)
+   ![test-linux-1](./images/test-linux-1.png)
 
 3. gh使用的最小权限是repo + read:org
 
-![image-20201216102325259](/Users/goven/Library/Application Support/typora-user-images/image-20201216102325259.png)
+![test-linux-2](./images/test-linux-2.png)
 
 4. 生成后注意复制保存秘钥
 
-![image-20201216102343021](/Users/goven/Library/Application Support/typora-user-images/image-20201216102343021.png)
+![test-linux-3](./images/test-linux-3.png)
 
 5. 登录gh
 
-![image-20201216105016343](/Users/goven/Library/Application Support/typora-user-images/image-20201216105016343.png)
+![test-linux-4](./images/test-linux-4.png)
 
 输入刚才生成的token
 
-![image-20201216105031034](/Users/goven/Library/Application Support/typora-user-images/image-20201216105031034.png)
+![test-linux-5](./images/test-linux-5.png)
 
 6. 使用gh
 
-![image-20201216102457876](/Users/goven/Library/Application Support/typora-user-images/image-20201216102457876.png)
+![test-linux-6](./images/test-linux-6.png)
 
 将代码 gh pr checkout 2418 复制后在centos命令行内粘贴输入, 完成切换, 十分方便
 
-![image-20201216102525531](/Users/goven/Library/Application Support/typora-user-images/image-20201216102525531.png)
+![test-linux-7](./images/test-linux-7.png)
 
  
-
-
 
 
 
@@ -96,7 +92,9 @@ brew install gh
 
 （2）相关配置
 
-<img src="/Users/goven/Library/Application Support/typora-user-images/image-20201213210843794.png" alt="image-20201213210843794" style="zoom:50%;" />
+<img src="./images/test-mac-1.png" alt="test-mac-1" style="zoom:75%;" />
+
+
 
 （3）使用 gh
 
