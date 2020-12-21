@@ -1,5 +1,5 @@
 #kube-apiserver 路由分析
-## kube-apiserver??httpserver
+## kube-apiserver的httpserver
 kube-apiserver的handler的分析首先要关注http.Server的创建和启动
 
 https://github.com/kubernetes/kubernetes/blob/e1a8adb6b64c49ab0b37a096f2316f583aba39dc/staging/src/k8s.io/apiserver/pkg/server/secure_serving.go#L147
@@ -105,14 +105,13 @@ type APIServerHandler struct {
 	}
 ```
 - Director
-Director??????????
+Director根据请求路径（是否包含ws的RootPath），将请求分发至GoRestfulContainer和nonGoRestfulMux。
 ```go
 type director struct {
 	name               string
 	goRestfulContainer *restful.Container
 	nonGoRestfulMux    *mux.PathRecorderMux
 }
-
 func (d director) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	path := req.URL.Path
 
@@ -156,6 +155,7 @@ GoRestFulContainer通过Add方法添加webservice，通过Router.selector操作�
 	1. webservice的粒度为一组apigroup，例如apps group下的所有资源对象的访问请求都注册进同一webservice。
 	1. Route的粒度为对一种资源的操作，例如对apps/v1/deployment的create操作，会生产对应的Route即RouteFunction
 	1. Router的粒度为整个Container，即groups
+![handler1](images/handler1.png)
 ## RouteFunction的生成
 apiserver大部分的内容都是将对后端rest.Storage的访问请求处理以route.RouteFunction形式封装成route再注册进webservice, 其中一个关键函数registerResourceHandlers如下
 https://github.com/kubernetes/kubernetes/blob/e214f2408b59c745c199645547948a8ad2a87ac2/staging/src/k8s.io/apiserver/pkg/endpoints/installer.go#L185
