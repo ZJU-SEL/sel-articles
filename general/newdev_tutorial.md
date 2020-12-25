@@ -16,7 +16,8 @@
 	1. [《docker--入门到实践》](https://yeasy.gitbook.io/docker_practice/)
 	1. [《Kubernetes 指南》](https://github.com/feiskyer/kubernetes-handbook)
 
-1. git入门  
+1. git  
+	1. 《pro git》git官方免费电子书
 	1. 《git权威指南》
 
 1. vim/neovim入门
