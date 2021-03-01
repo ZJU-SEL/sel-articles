@@ -70,7 +70,7 @@ type Pod struct {
 }
 ```
 
-目前yurthub只能编码和解码这些路径下的资源：
+目前yurthub只能编码和解码这些Group/Version下的api对象：
 
 ```go
 admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
@@ -254,4 +254,3 @@ type SerializerManager struct {
 - [ ] 03/01/2021: Proposed idea in an issue or [community meeting]
 - [ ] 03/01/2021: 提交删除[resourceToKindMap](https://github.com/openyurtio/openyurt/blob/4d7463a40801c29d09c4f7d10ba46b73cb019915/pkg/yurthub/cachemanager/cache_manager.go#L46) 和 [resourceToListKindMap](https://github.com/openyurtio/openyurt/blob/4d7463a40801c29d09c4f7d10ba46b73cb019915/pkg/yurthub/cachemanager/cache_manager.go#L62) 的PR (https://github.com/openyurtio/openyurt/pull/225)
 - [ ] 03/03/2021: openyurt会议上进行proposal分享
-
