@@ -62,7 +62,7 @@ iptable Manager 启动之后，在 iptables 中建立 chain、rules：
 
 <img src="./images/tunnel-5.png" alt="image-20210518165101648" style="zoom:80%;" />
 
-<img src="/Users/goven/Library/Application Support/typora-user-images/image-20210518165135957.png" alt="image-20210518165135957" style="zoom:80%;" />
+<img src="./images/tunnel-6.png" alt="image-20210518165135957" style="zoom:80%;" />
 
 - 规则的维护：同步周期为 15s，获取集群中 node 信息（获取 node IP）+configmap信息（获取 port 信息）
 
