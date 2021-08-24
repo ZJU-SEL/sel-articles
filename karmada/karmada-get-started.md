@@ -1,18 +1,18 @@
 # karmada上手指南
 
-华为的karmada项目第一个release（v0.1.0）出现在2020年12月，而其正是发布则是在2021年4月25日，在深圳召开的华为开发者大会（HDC.Cloud）2021上，华为云CTO张宇昕在主题演讲中正式宣布其开源。
+karmada是华为开源的云原生多云容器编排平台，目标是让开发者像使用单个k8s集群一样使用多k8s云。它的第一个release（v0.1.0）出现在2020年12月，而正式发布则是在2021年4月25日，在深圳召开的华为开发者大会（HDC.Cloud）2021上。
 
-karmada吸取了CNCF社区的Federation v1和v2（也称为kubefed）项目经验与教训，在保持原有k8s应用资源定义API不变的情况下，通过添加与分布式应用部署管理相关的一套新的API和控制面组件，方便用户将应用部署到多云环境中，实现应用扩容、高可用等目标。
+karmada吸取了CNCF社区的Federation v1和v2（也称为kubefed）项目经验与教训，在保持原有k8s资源定义API不变的情况下，通过添加与分布式工作负载部署管理相关的一套新的API和控制面组件，方便用户将工作负载部署到多云环境中，实现扩容、高可用等目标。
 
 官方网站：https://karmada.io/
 
 代码地址：https://github.com/karmada-io/karmada
 
 使用karmada管理的多云环境包含两类集群：
-1. host集群：即由karmada控制面构成的集群，接受用户提交的工作负载部署需求，并将之同步到member集群
+1. host集群：即由karmada控制面构成的集群，接受用户提交的工作负载部署需求，将之同步到member集群，并从member集群同步工作负载后续的运行状况。
 1. member集群：由一个或多个k8s集群构成，负责运行用户提交的工作负载
 
-本文描述karmada的上手流程，使用的karmada版本为v0.7.0后的commit：c4835e1f。
+本文描述karmada的上手流程，使用的karmada版本为v0.7.0后的commit：c4835e1f，与8月发布的v0.8.0差了二十几个commit。
 
 ## 1. karmada安装
 
