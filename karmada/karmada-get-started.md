@@ -57,7 +57,9 @@ GO111MODULE=on GOPROXY=goproxy.cn go get sigs.k8s.io/kind@v0.11.1
 
 kind使用一个容器来模拟一个node，在容器内部使用systemd托管kubelet和containerd（不是docker），然后通过被托管的kubelet启动其他k8s组件，比如kube-apiserver、etcd、CNI等跑起来。
 
-后续部署karmada环境时会调用kind创建好一个单node的k8s集群，可以通过执行`docker exec karmada-host-control-plane ctr --namespace k8s.io containers ls`查看该容器内部运行的作为“嵌套容器”运行的k8s组件的运行情况：如kube-controller-manager、etcd、kube-apiserver、kube-proxy、kube-scheduler等
+由于kind使用containerd而非docker作为容器运行时，要查看kind启动的k8s节点内部容器运行情况，需要使用containerd的cli客户端`ctr`。可以通过下面这条命令查看后续步骤中karmada调用kind启动的单节点k8s集群内部容器的运行情况：`docker exec karmada-host-control-plane ctr --namespace k8s.io containers ls`。
+
+> ctr的flag `--namespace`不是k8s里的namespace，也不是linux内核支持的namespace，感兴趣的同学可以查看containerd的namespace相关概念
 
 ### 1.3. 启动本地k8s集群，安装karmada控制面
 
