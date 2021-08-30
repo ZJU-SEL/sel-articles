@@ -110,7 +110,7 @@ kind使用一个容器来模拟一个node，在容器内部使用systemd托管ku
 
 ## 2. karmada控制面构成
 
-部署karmada完成后，在切换到`karmada-host` context后，执行`kubectl get po --all-namespaces`可以得到已经部署的组件列表：
+部署karmada完成后，在切换到`karmada-host` context后，执行`kubectl get po -A`可以得到已经部署的组件列表：
 
 ```sh
 NAMESPACE            NAME                                                 READY   STATUS    RESTARTS   AGE
