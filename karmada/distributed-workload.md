@@ -163,14 +163,6 @@ nginx   3/1     3            3           5m8s
 
 ## 2. 多云环境下的应用资源编排API实现
 
-k8s的资源分为namespace范围的资源（namespace-scoped）和集群范围的资源（cluster-scoped），karmada支持这两类资源的多云编排，karmada API设计上分别有对应的类型：
-
-1. 体现在propagation policy API上，分为namespace范围的propagation policy和集群范围的cluster propagation policy
-1. 体现在override policy API上，分为namespace范围的override policy和集群范围的cluster override policy
-1. 体现在resource binding API上，分为namespace范围的resource binding和集群范围的cluster resource binding。
-
-这些不同范围（scope）的API在实现上有类似之处，为了减少重复，本文只分析namespace范围的API的实现。
-
 与k8s中的`kube-controller-manager`类似，karmada中的`karmada-controller-manager`组件基于`sigs.k8s.io/controller-runtime`实现，在单独的goroutine中运行了一系列controller。这些controller配合karmada-scheduler，处理由用户提交的k8s原生API资源（比如前面例子中的`Deployment`）或CRD资源、以及propagation policy、override policy等karmada自定义API资源对象，实现多云环境下的应用资源编排。其中与应用下发相关的controller及它们在应用下发过程中发挥的作用如下：
 
 1. resource detector：监听propagation policy和k8s原生API资源对象（包括CRD资源）的变化，实现两者的绑定。绑定的结果是产生`ResourceBinding`
@@ -192,7 +184,13 @@ resource detector在单独的goroutine中运行一个名为“resource detector�
 
 resource detector在另外一个单独的goroutine中运行一个名为“policy reconciler”的`AsyncWorker`，让它负责处理用户提交的propagation policy。每当用户创建了新的propagation policy，policy reconciler就会去`waitingObjects`中查找之前没能与propagation policy匹配上的k8s原生API资源对象（包括CRD资源）。一旦发现处于等待状态的之前某个k8s原生API资源对象（包括CRD资源）能够与新创建的propagation policy匹配上，就将它加入resource detector这个`AsyncWorker`的队列中，由resource detector完成后续生成resource binding对象的流程。
 
-将绑定成功的propagation policy和k8s原生API资源对象（包括CRD资源）转化为resource binding对象的流程在resource detector的`ApplyPolicy`方法中。该方法流程如下：
+当用户创建了多个propagation policy和cluster propagation policy时，resource detector的绑定流程遵循以下优先级：
+
+1. 优先匹配propagation policy，如果无法匹配，再尝试匹配cluster propagation policy
+1. 匹配propagation policy时，只选择与当前k8s原生API资源对象（包括CRD资源）同一个namespace下的propagation policy
+1. 如果同时存在多个propagation policy或cluster propagation policy与k8s原生API资源对象（包括CRD资源）匹配，则根据propagation policy或cluster propagation policy的name排序，选择排序后第一位的propagation policy或cluster propagation policy
+
+根据绑定的是propagation policy还是cluster propagation policy，resource detector分别调用`ApplyPolicy`或`ApplyClusterPolicy`方法生成对应的resource binding或cluster resource binding对象。这里以`ApplyPolicy`为例分析生成resource binding的流程：
 
 首先为k8s原生API资源对象（包括CRD资源）添加两个label（`ClaimPolicyForObject`方法负责添加）
 
