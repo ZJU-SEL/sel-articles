@@ -49,9 +49,9 @@ local-path-storage   local-path-provisioner-78776bfc44-d9fvv              1/1   
 
 其中我们可以看到两个调度器：在`kube-system` namespace中的`kube-scheduler-karmada-host-control-plane`，和在`karmada-system` namespace中的`karmada-scheduler-7c8d678979-bgq4f`。
 
-其中`kube-system` namespace中的是标准的k8s调度器kube-scheduler，它在这里的任务相对简单，只是负责将以deployment形式部署的karmada众多组建调度到karmada-host集群上。
+其中`kube-system` namespace中的是标准的k8s调度器kube-scheduler，它在这里的任务相对简单，只是负责将以deployment形式部署的karmada众多组件调度到karmada-host集群上。
 
-而在`karmada-system` namespace中的karamda-scheduler则是工作在更高一个层面，也就是集群联邦层面上的多云调度器。其目的是将用户提交给karmada控制面的应用调度到karamda管理的成员集群中，所谓的应用包括了deployment等各种k8s原生API资源，以及CRD资源。
+而在`karmada-system` namespace中的karmada-scheduler则是工作在更高一个层面，也就是集群联邦层面上的多云调度器。其目的是将用户提交给karmada控制面的应用调度到karmada管理的成员集群中，所谓的应用包括了deployment等各种k8s原生API资源，以及CRD资源。
 
 ## 2. karmada scheduler框架
 
@@ -76,15 +76,15 @@ karmada scheduler对每个经过上一步过滤的成员集群调用每个插件
 
 ## 3. karmada scheduler的各种工作场景
 
-从工作顺序上讲，karmada scheduler工作在resource detector后，也就是要等到resource detector绑定propagation policy和k8s原生API资源对象（包括CRD资源）之后才介入。所以karamda scheduler的输入是resource detector的输出：resource binding。对resource detector、resource binding等概念感兴趣的读者可以查看本karmada源码分析系列文章中的上一篇文章《从karmada API角度分析多云环境下的应用资源编排：设计与实现》。
+从工作顺序上讲，karmada scheduler工作在resource detector后，也就是要等到resource detector绑定propagation policy和k8s原生API资源对象（包括CRD资源）之后才介入。所以karmada scheduler的输入是resource detector的输出：resource binding。对resource detector、resource binding等概念感兴趣的读者可以查看本karmada源码分析系列文章中的上一篇文章《从karmada API角度分析多云环境下的应用资源编排：设计与实现》。
 
 当karmada scheduler的worker逐一处理内部队列`queue`中的resource binding的更新事件时（这些事件由karmada scheduler定义的不同list/watch handler加入`queue`中），这些resource binding对象可能处于以下几种状态，这些不同的状态决定了karmada scheduler下一步处理流程：
 
 1. 首次调度（`FirstSchedule`）：这个阶段的resource binding刚由resource detector的绑定工作创建出来。从未经过karmada scheduler的调度处理。这类resource binding对象的特征是`.spec.clusters`为空
-1. 调和调度（`ReconcileSchedule`）：当用户更新了propagation policy的placement，为了使得系统的实际运行状态与用户的期望一致，karmada scheduler不得不将之前已经调度过的k8s原生API资源对象（包括CRD资源）重新调度到新的成员集群中（从这个角度讲，下面的扩缩容调度也是一种调和调度，调和是在k8s中普遍使用的概念，因此“调和调度”这个名字范围太广，含义不明确）。这类resource binding对象的特征是之前已经通过karmada scheduler的调度，即`.spec.clusters`不为空，且之前已经绑定的propagation policy最新的placement不等于之前调度时的placement。
+1. 调和调度（`ReconcileSchedule`）：当用户更新了propagation policy的placement，为了使得系统的实际运行状态与用户的期望一致，karmada scheduler不得不将之前已经调度过的k8s原生API资源对象（包括CRD资源）重新调度到新的成员集群中（从这个角度讲，下面的扩缩容调度也是一种调和调度，调和是在k8s中普遍使用的概念，因此“调和调度”这个名字范围太广，含义不明确）。这类resource binding对象的特征是之前已经通过karmada scheduler的调度，即`.spec.clusters`不为空，且上一次调度中绑定的propagation policy的placement当前发生了变化。
 1. 扩缩容调度（`ScaleSchedule`）：当propagation policy包含的replica scheduling strategy与集群联邦中实际运行的replica数量不一致时，需要重新调度之前已经完成调度的k8s原生API资源对象（包括CRD资源）
 1. 故障恢复调度（`FailoverSchedule`）：当上次调度结果中的成员集群发生故障，也就是resource binding的`.spec.clusters`包含的成员集群状态不全都是就绪（ready），karmada scheduler需要重新调度应用，以恢复集群故障带来的应用故障
-1. 无需调度（`AvoidSchedule`）：当上次调度结果中的成员集群状态均为就绪（ready），也就是resource binding的`.spec.clusters`包含的成员集群状态全都是就绪（ready），则无需做任何调度工作，只是在日至中记录告警信息：Don't need to schedule binding。
+1. 无需调度（`AvoidSchedule`）：当上次调度结果中的成员集群状态均为就绪（ready），也就是resource binding的`.spec.clusters`包含的成员集群状态全都是就绪（ready），则无需做任何调度工作，只是在日志中记录告警信息：Don't need to schedule binding。
 
 3.1-3.3小节就上面几种情况分别描述karmada scheduler的工作流程。
 
@@ -94,7 +94,7 @@ karmada scheduler使用自身的`getTypeFromResourceBindings`方法判定从`que
 
 当resource binding的`.spec.clusters`为空，就表示该resource binding资源从未经过调度，这时karmada scheduler判定它的状态为首次调度。
 
-当resource binding的`.spec.cluster`不为空，但是之前绑定的propagation policy的placement发生了变化，则karmada scheduler判定它的状态为调和调度。karmada scheduler是得知如何上一轮调度中propagation policy的placement？原来karmada scheduler在上一次调度完成后，把当时的propagation policy的placement记在了resource binding的annotations中。比如下面的yaml是一个经过karmada scheduler调度的resource binding对象：
+当resource binding的`.spec.clusters`不为空，但是上一次调度中绑定的propagation policy的placement发生了变化，则karmada scheduler判定它的状态为调和调度。karmada scheduler是如何得知上一次调度中propagation policy的placement？原来karmada scheduler在上一次调度完成后，把当时的propagation policy的placement记在了resource binding的annotations中。比如下面的yaml是一个经过karmada scheduler调度的resource binding对象：
 
 ```yaml
 apiVersion: work.karmada.io/v1alpha1
@@ -133,7 +133,7 @@ spec:
 
 首次调度和调和调度采用同样的处理流程（karmada scheduler的`scheduleOne`方法），所以在本小节中一起说明。
 
-`scheduleOne`方法把主要的调度逻辑交给generic scheduler，`scheduleOne`剩下的逻辑就比较简单：在调用generic scheduler的`Schedule`方法后，得到目标集群`ScheduleResult`，将`ScheduleResult`写入resource binding的`.spec.cluster`中，并将当前的placement写入resource binding的`policy.karmada.io/applied-placement` annotation中。
+`scheduleOne`方法把主要的调度逻辑交给generic scheduler，`scheduleOne`剩下的逻辑就比较简单：在调用generic scheduler的`Schedule`方法后，得到目标集群`ScheduleResult`，将`ScheduleResult`写入resource binding的`.spec.clusters`中，并将当前的placement写入resource binding的`policy.karmada.io/applied-placement` annotation中。
 
 现在我们看generic scheduler的调度逻辑是怎样的。
 
@@ -214,13 +214,13 @@ spec:
 上面的propagation policy包含了一个replica scheduling strategy（`.spec.placement.replicaScheduling`），对它说明如下：
 
 1. 该replica scheduling policy的类型为“切分”，也就是将nginx的deployment的replica数量切分到多个成员集群上。  
-karmada scheduler支持两种类型的replica scheduling strategy：“切分”（divided）和“复制”（duplicated），可以通过设置`.spec.placment.replicaScheduling.replicaSchedulingType`为`Divided`或`Duplicated`来选择。在上面例子中的“切分”策略将原本deployment资源的replica数量3切分到个成员集群中。如果选择的是`Duplicated`，则将待下发的deployment对象的replia数量复制到成员集群中。
+karmada scheduler支持两种类型的replica scheduling strategy：“切分”（divided）和“复制”（duplicated），可以通过设置`.spec.placment.replicaScheduling.replicaSchedulingType`为`Divided`或`Duplicated`来选择。在上面例子中的“切分”策略将原本deployment资源的replica数量3切分到个成员集群中。如果选择的是`Duplicated`，则将待下发的deployment对象的replica数量复制到成员集群中。
 1. 切分的时候按照权重设定切分比列  
-这里设置`.spec.placment.replicaScheduling.replicaDivisionPreference`为`Weighted`，意思是切分replia的时候，以各成员集群的权重切分
+这里设置`.spec.placment.replicaScheduling.replicaDivisionPreference`为`Weighted`，意思是切分replica的时候，以各成员集群的权重切分
 1. 各成员集群的权重是2：1（int类型）  
 也就是按照2:1的权重将原本的deployment的replica分配到`member1`和`member2`两个成员集群上。
 
-将上述的deployment和propagation policy通过`kubectl apply`提交给karmada apiserver后，执行`kubectl get rb nginx-deployment -n default -o yaml --context=karmada-apiserver`可以查看karamda scheduler更新过的包含调度结果的resource binding。可以看到`.spec.cluster`中，分配到`member1`集群上的replica数量是2，分配到`member2`集群上的replia数量是1，符合replica总数是3，按照2：1的权重分配的设定。
+将上述的deployment和propagation policy通过`kubectl apply`提交给karmada apiserver后，执行`kubectl get rb nginx-deployment -n default -o yaml --context=karmada-apiserver`可以查看karmada scheduler更新过的包含调度结果的resource binding。可以看到`.spec.clusters`中，分配到`member1`集群上的replica数量是2，分配到`member2`集群上的replica数量是1，符合replica总数是3，按照2：1的权重分配的设定。
 
 ```yaml
 apiVersion: work.karmada.io/v1alpha1
@@ -264,15 +264,15 @@ spec:
     resourceVersion: "9439"
 ```
 
-当前karamda scheduler仅支持deployment的replica scheduling policy，未来可能支持statefulset等其他带replica属性的k8s原生API资源类型（resource detector的`GetReplicaDeclaration`方法会把需要下发到成员集群的deployment资源的replica抽取出来，放在resource binding的`.spec.replicas`里）。
+当前karmada scheduler仅支持deployment的replica scheduling policy，未来可能支持statefulset等其他带replica属性的k8s原生API资源类型（resource detector的`GetReplicaDeclaration`方法会把需要下发到成员集群的deployment资源的replica抽取出来，放在resource binding的`.spec.replicas`里）。
 
 ### 3.2. 扩缩容调度
 
 karmada scheduler使用自身的`getTypeFromResourceBindings`方法判定从`queue`中得到的resource binding的所处状态。
 
-当resource binding的`.spec.cluster`不为空，且propagation policy包含的replica scheduling strategy与集群联邦中实际运行的replica数量不一致时，karmada scheduler判定resource binding的状态为扩缩容调度。karmada scheduler调用`IsBindingReplicasChanged`函数做出上述判断，具体有两个判断条件：
+当resource binding的`.spec.clusters`不为空，且propagation policy包含的replica scheduling strategy与集群联邦中实际运行的replica数量不一致时，karmada scheduler判定resource binding的状态为扩缩容调度。karmada scheduler调用`IsBindingReplicasChanged`函数做出上述判断，具体有两个判断条件：
 
-1. 如果replica scheduling strategy的类型为`Duplicated`，表示各目标成员集群上应该运行的replica数量应该等于resource binding的`.spec.replica`。如果这两者不等，则karamda scheduler判定为扩缩容调度
+1. 如果replica scheduling strategy的类型为`Duplicated`，表示各目标成员集群上应该运行的replica数量应该等于resource binding的`.spec.replica`。如果这两者不等，则karmada scheduler判定为扩缩容调度
 1. 如果replica scheduling strategy的类型为`Divided`，表示各成员集群上运行的replica数量之和应该等于resource binding的`.spec.replica`。如果这两者不等，则karmada scheduler判定为扩缩容调度
 
 一旦karmada scheduler判断为扩缩容调度，则调用自身的`scaleScheduleOne`方法，其流程与前面的`assignReplicas`方法类似，这里不再复述。
@@ -281,12 +281,12 @@ karmada scheduler使用自身的`getTypeFromResourceBindings`方法判定从`que
 
 karmada scheduler使用自身的`getTypeFromResourceBindings`方法判定从`queue`中得到的resource binding的所处状态。
 
-当resource binding的`.spec.cluster`不为空，且上次调度结果中的部分成员集群发生故障（即集群状态不是就绪，对karmada中集群状态管理感兴趣的读者推荐阅读本karmada源码分析系列文章中的《多云环境下的成员集群管理，开源项目karmada是如何做到的》），也就是resource binding的`.spec.clusters`包含的成员集群状态不全都是就绪，需要重新调度应用，以恢复集群故障带来的应用故障。
+当resource binding的`.spec.clusters`不为空，且上次调度结果中的部分成员集群发生故障（即集群状态不是就绪，对karmada中集群状态管理感兴趣的读者推荐阅读本karmada源码分析系列文章中的《多云环境下的成员集群管理，开源项目karmada是如何做到的》），也就是resource binding的`.spec.clusters`包含的成员集群状态不全都是就绪，需要重新调度应用，以恢复集群故障带来的应用故障。
 
 一旦karmada scheduler判断为故障恢复调度，则调用自身的`rescheduleOne`方法。该方法用当前状态为就绪但不包含在之前调度结果中的集群来替换发生故障的集群：
 
 1. 获取集群联邦中当前所有就绪的集群：ready clusters
-1. 从resource binding的`.spec.cluster`中获取之前调度结果中的集群列表：total clusters
+1. 从resource binding的`.spec.clusters`中获取之前调度结果中的集群列表：total clusters
 1. 计算之前调度结果的集群中当前依然健康的集群：reserved clusters
 1. 从ready cluster中去除totol cluster，得到当前状态为就绪，但不包含在之前调度结果中的集群：available clusters，可以考虑用这些集群去补充之前调度结果中发生故障的集群
 1. 用filter扩展点上的所有调度算法插件过滤available clusters，把其中不满足filter要求的集群去除，得到candidate clusters
