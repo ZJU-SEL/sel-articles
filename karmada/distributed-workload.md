@@ -261,10 +261,11 @@ scheduler的输入是使用list/watch机制监控的resource binding、propagati
 
 当scheduler的`worker`方法逐一处理内部队列中的resouce binding的更新事件时（这些事件由scheduler定义的不同list/watch handler加入内部队列中），这些resource binding对象可能处于以下几种状态，这些不同的状态决定了scheduler下一步处理流程：
 
-1. 首次调度（`FirstSchedule`）：也就是上一步的resource detector刚创建的resource binding，从未经过scheduler的调度处理。这类resource binding对象的特征是`.spec.clusters`为空
-1. reconcile调度（`ReconcileSchedule`）：当用户更新了propagation policy的placement，使得之前已经完成调度的k8s原生API资源对象（包括CRD资源）不得不被重新调度到新的member集群中。这类resource binding对象的特征是之前已经通过scheduler的调度，即`.spec.clusters`不为空，且涉及的propagation policy最新的placement不等于之前调度时的placement。
-1. Scale调度（`ScaleSchedule`）：当propagation policy的replica调度策略发生变化，需要重新调度之前已经完成调度的k8s原生API资源对象（包括CRD资源）
-1. Avoid调度（`AvoidSchedule`）：当member集群的状态变为不可用
+1. 首次调度（`FirstSchedule`）：这个阶段的resource binding刚由resource detector的绑定工作创建出来。从未经过karmada scheduler的调度处理。这类resource binding对象的特征是`.spec.clusters`为空
+1. 调和调度（`ReconcileSchedule`）：当用户更新了propagation policy的placement，为了使得系统的实际运行状态与用户的期望一致，karmada scheduler不得不将之前已经调度过的k8s原生API资源对象（包括CRD资源）重新调度到新的成员集群中（从这个角度讲，下面的扩缩容调度也是一种调和调度，调和是在k8s中普遍使用的概念，因此“调和调度”这个名字范围太广，含义不明确）。这类resource binding对象的特征是之前已经通过karmada scheduler的调度，即`.spec.clusters`不为空，且上一次调度中绑定的propagation policy的placement当前发生了变化。
+1. 扩缩容调度（`ScaleSchedule`）：当propagation policy包含的replica scheduling strategy与集群联邦中实际运行的replica数量不一致时，需要重新调度之前已经完成调度的k8s原生API资源对象（包括CRD资源）
+1. 故障恢复调度（`FailoverSchedule`）：当上次调度结果中的成员集群发生故障，也就是resource binding的`.spec.clusters`包含的成员集群状态不全都是就绪（ready），karmada scheduler需要重新调度应用，以恢复集群故障带来的应用故障
+1. 无需调度（`AvoidSchedule`）：当上次调度结果中的成员集群状态均为就绪（ready），也就是resource binding的`.spec.clusters`包含的成员集群状态全都是就绪（ready），则无需做任何调度工作，只是在日志中记录告警信息：Don't need to schedule binding。
 
 这里重点分析首次调度的处理流程，该流程由scheduler的`scheduleOne`方法定义：
 
